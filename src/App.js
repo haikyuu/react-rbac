@@ -1,12 +1,8 @@
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 import React, { useState, useEffect } from "react";
-import { useHistory, useLocation } from "react-router-dom";
-
-// A custom hook that builds on useLocation to parse
-// the query string for you.
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
+import { useHistory } from "react-router-dom";
+import { isTokenValid, useQuery } from "./utils/navigation";
 
 export default function App() {
   const logout = () => {
@@ -39,21 +35,18 @@ export default function App() {
           <Route path="/about">
             <About />
           </Route>
-          <Route path="/users">
+          <ProtectedRoute path="/users">
             <Users />
-          </Route>
-          <Route path="/">
+          </ProtectedRoute>
+          <ProtectedRoute path="/">
             <Home />
-          </Route>
+          </ProtectedRoute>
         </Switch>
       </div>
     </Router>
   );
 }
-async function isTokenValid(token) {
-  // in the real world, we would call the API to veryfy it.
-  return true;
-}
+
 function Login() {
   const [role, setRole] = useState("user");
   const queryParams = useQuery();
@@ -100,24 +93,6 @@ function Login() {
   );
 }
 function Home() {
-  const history = useHistory();
-  useEffect(() => {
-    // if user is not logged in, redirect back to Login page and show a message
-    const jsonUser = localStorage.getItem("user");
-    console.log(jsonUser);
-    if (jsonUser) {
-      const user = JSON.parse(jsonUser);
-      isTokenValid(user.token).then(result => {
-        // I know, it's too long. But i prefer clarity
-        // if you want isUserLoggedIn = result
-        if (result === false) {
-          history.push(`/login?from=home`);
-        }
-      });
-    } else {
-      history.push(`/login?from=home`);
-    }
-  }, []);
   return <h2>Home</h2>;
 }
 
